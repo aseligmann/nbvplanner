@@ -1,3 +1,11 @@
+# This fork compiles in Melodic
+
+One dependency is missing, but can be installed with
+```bash
+sudo apt install ros-melodic-mav-msgs
+```
+
+
 # Receding Horizon Next Best View Planning
 
 The next best view planner is a real-time capable exploration path planner. From the current pose it expands a tree to find a next pose that gives a high exploration gain. This gain reflects the exploration of space that is not yet (sufficiently) known. As the vehicle proceeds on the path, the tree is recomputed, taking into account the new information from the sensor.
