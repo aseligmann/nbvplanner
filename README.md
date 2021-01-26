@@ -1,10 +1,20 @@
-# This fork compiles in Melodic
+# NBVPlanner in Melodic with Voxblox
 
-One dependency is missing, but can be installed with
-```bash
-sudo apt install ros-melodic-mav-msgs
-```
+This is a fork of the NBVPlanner repository, which has been modified to compile in ROS Melodic on Ubuntu 18.04.
 
+Additionally, this fork has Voxblox implemented and uses an updated version of RotorS.
+
+### Installation instructions:
+
+1. `mkdir -p ~/nbvplanner_ws/src && cd ~/nbvplanner_ws/src`
+2. `sudo apt install ros-melodic-mav-msgs python-wstool python-catkin-tools ros-melodic-cmake-modules protobuf-compiler autoconf`
+3. `wstool init . nbvplanner.rosinstall`
+4. `cd .. && catkin init && catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release`
+5. `rosdep install --from-paths src --ignore-src -r -y`
+6. `catkin build`
+
+
+---
 
 # Receding Horizon Next Best View Planning
 
