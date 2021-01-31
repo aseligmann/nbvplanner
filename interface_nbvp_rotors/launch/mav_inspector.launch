@@ -1,5 +1,6 @@
 <launch>
   <arg name="mav_name" default="firefly" />
+  <arg name="robot_model" default="$(find rotors_description)/urdf/firefly_three_vi_depth_sensors.gazebo"/>
   <arg name="waypoint_x" default="0" />
   <arg name="waypoint_y" default="0" />
   <arg name="waypoint_z" default="1" />
@@ -33,7 +34,8 @@
     <include file="$(find rotors_gazebo)/launch/spawn_mav.launch">
       <arg name="mav_name" value="$(arg mav_name)$(arg subscript)" />
       <!-- <arg name="model" value="$(find rotors_description)/urdf/firefly_vi_sensor.gazebo" /> -->
-      <arg name="model" value="$(find rotors_description)/urdf/mav_with_vi_sensor.gazebo" />
+      <!-- <arg name="model" value="$(find rotors_description)/urdf/mav_with_vi_sensor.gazebo" /> -->
+      <arg name="model" value="$(arg robot_model)" />
       <arg name="enable_logging" value="$(arg enable_logging)" />
       <arg name="enable_ground_truth" value="$(arg enable_ground_truth)" />
       <arg name="log_file" value="$(arg log_file)"/>
