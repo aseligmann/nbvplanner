@@ -1,8 +1,13 @@
 system/v_max: 0.2
 system/dyaw_max: 0.75
-system/camera/pitch: [5.0]
-system/camera/horizontal: [90.0]
-system/camera/vertical: [60.0]
+system/camera/pitch: [0.0]
+# res_x = 640 px
+# res_y = 480 px
+# fov_x = 2.0 rad = 114.59 deg
+# fov_y = 1.5 rad =  85.94 deg
+# focallength = 1/2 * res_x * 1/(tan(fov_x/2))
+system/camera/horizontal: [114.59]
+system/camera/vertical: [85.94]
 system/bbx/x: 0.7
 system/bbx/y: 0.7
 system/bbx/z: 0.3
@@ -27,13 +32,13 @@ nbvp/log/on: true
 
 # bounding box: necessary to limit the simulation 
 # scenario (smaller than actual gazebo scenario)
-bbx/minX: -2.5
+bbx/minX: -3.0
 bbx/minY: -2.5
-bbx/minZ: -0.0
-bbx/maxX: 15.0
+bbx/minZ: -0.1
+bbx/maxX: 35.0
 bbx/maxY: 2.5
-bbx/maxZ: 20.0
-bbx/softBounds: true
+bbx/maxZ: 12.0
+bbx/softBounds: false
 
 pcl_throttle: 0.36
 inspection_throttle: 0.5
