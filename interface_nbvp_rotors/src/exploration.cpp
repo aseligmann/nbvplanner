@@ -32,6 +32,39 @@
 #include <mav_msgs/default_topics.h>
 #include <nbvplanner/nbvp_srv.h>
 
+#include <std_srvs/SetBool.h>
+
+
+
+// EVALUATING USING MAV_ACTIVE_3D_PLANNER EVALUATION FRAMEWORK //////////////////////////////
+bool eval_planning_ = false;
+bool eval_runSrvCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res) {
+    res.success = true;
+    ROS_INFO_STREAM("EVAL: Got request for TOGGLE RUNNING.");
+    if (req.data) {
+        eval_planning_ = true;
+        ROS_INFO("EVAL: Started planning.");
+    } else {
+        eval_planning_ = false;
+        ROS_INFO("EVAL: Stopped planning.");
+    }
+    return true;
+}
+clock_t eval_cpu_srv_timer_ = std::clock();
+bool eval_cpuSrvCallback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res) {
+    ROS_INFO_STREAM("EVAL: Got request for CPU service.");
+    double time = (double) (std::clock() - eval_cpu_srv_timer_) / CLOCKS_PER_SEC;
+    eval_cpu_srv_timer_ = std::clock();
+
+    // Just return cpu time as the service message
+    res.message = std::to_string(time).c_str();
+    res.success = true;
+    return true;
+}
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "exploration");
@@ -39,13 +72,16 @@ int main(int argc, char** argv)
   ros::Publisher trajectory_pub = nh.advertise < trajectory_msgs::MultiDOFJointTrajectory
       > (mav_msgs::default_topics::COMMAND_TRAJECTORY, 5);
   ROS_INFO("Started exploration");
+  std::string ns = ros::this_node::getName();
 
   std_srvs::Empty srv;
   bool unpaused = ros::service::call("/gazebo/unpause_physics", srv);
   unsigned int i = 0;
 
   // Trying to unpause Gazebo for 10 seconds.
-  while (i <= 10 && !unpaused) {
+  int gz_wait;
+  nh.param(ns + "/gazebo_timeout", gz_wait, 10);
+  while (i <= gz_wait && !unpaused) {
     ROS_INFO("Wait for 1 second before trying to unpause Gazebo again.");
     std::this_thread::sleep_for(std::chrono::seconds(1));
     unpaused = ros::service::call("/gazebo/unpause_physics", srv);
@@ -60,7 +96,6 @@ int main(int argc, char** argv)
   }
 
   double dt = 1.0;
-  std::string ns = ros::this_node::getName();
   if (!ros::param::get(ns + "/nbvp/dt", dt)) {
     ROS_FATAL("Could not start exploration. Parameter missing! Looking for %s",
               (ns + "/nbvp/dt").c_str());
@@ -75,6 +110,23 @@ int main(int argc, char** argv)
 
   // Wait for 5 seconds to let the Gazebo GUI show up.
   ros::Duration(5.0).sleep();
+
+
+
+  // EVALUATING USING MAV_ACTIVE_3D_PLANNER EVALUATION FRAMEWORK //////////////////////////////
+  ros::ServiceServer eval_run_srv_ = nh.advertiseService("/planner_evaluation/toggle_running", eval_runSrvCallback);
+  ros::ServiceServer eval_get_cpu_time_srv_ = nh.advertiseService("/planner_evaluation/get_cpu_time", eval_cpuSrvCallback);
+  ros::Rate eval_r(1);
+  while (!eval_planning_) {
+    ROS_INFO("EVAL: Waiting for service request on %s to start planning...", eval_run_srv_.getService().c_str());
+    ros::spinOnce();
+    eval_r.sleep();
+  }
+  eval_cpu_srv_timer_ = std::clock();
+  ROS_INFO("Continuing...");
+  /////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
   // This is the initialization motion, necessary that the known free space allows the planning
   // of initial paths.
@@ -93,6 +145,7 @@ int main(int argc, char** argv)
     samples_array.points.push_back(trajectory_point_msg);
     trajectory_pub.publish(samples_array);
     ros::Duration(1.0).sleep();
+    ros::spinOnce();
   }
   trajectory_point.position_W.x() = 1.0;
   trajectory_point.position_W.y() = 0.0;
@@ -104,10 +157,11 @@ int main(int argc, char** argv)
   samples_array.points.push_back(trajectory_point_msg);
   trajectory_pub.publish(samples_array);
   ros::Duration(1.0).sleep();
+  ros::spinOnce();
 
   // Start planning: The planner is called and the computed path sent to the controller.
   int iteration = 0;
-  while (ros::ok()) {
+  while (ros::ok() && eval_planning_) {
     ROS_INFO_THROTTLE(0.5, "Planning iteration %i", iteration);
     nbvplanner::nbvp_srv planSrv;
     planSrv.request.header.stamp = ros::Time::now();
@@ -142,5 +196,7 @@ int main(int argc, char** argv)
       ros::Duration(1.0).sleep();
     }
     iteration++;
+
+    ros::spinOnce();
   }
 }

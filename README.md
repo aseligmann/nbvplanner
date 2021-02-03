@@ -13,6 +13,11 @@ Additionally, this fork has Voxblox implemented and uses an updated version of R
 5. `rosdep install --from-paths src --ignore-src -r -y`
 6. `catkin build`
 
+### NOTE
+
+To activate the planner after launch, a `set_bool` service call must be made on `/planner_evaluation/toggle_running` with `data: true`!
+
+Planning can be ended early by using the same service call with `data: false`.
 
 ---
 

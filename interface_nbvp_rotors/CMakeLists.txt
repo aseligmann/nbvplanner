@@ -4,6 +4,7 @@ project(interface_nbvp_rotors)
 find_package(catkin REQUIRED COMPONENTS
   trajectory_msgs
   mav_msgs
+  std_srvs
   tf
 )
 
@@ -12,7 +13,7 @@ include_directories(${Eigen_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} ../../devel/inc
 catkin_package(
   INCLUDE_DIRS ${Eigen_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}
   LIBRARIES ${catkin_LIBRARIES}
-  CATKIN_DEPENDS trajectory_msgs mav_msgs tf
+  CATKIN_DEPENDS trajectory_msgs mav_msgs std_srvs tf
 )
 
 add_executable(exploration src/exploration.cpp)
